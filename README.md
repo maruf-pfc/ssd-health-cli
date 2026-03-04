@@ -98,4 +98,4 @@ Power On Hours: 5204
 
 ## 📄 License
 
-This project is licensed under the [MIT License](LICENSE). Feel free to contribute, modify, and distribute it!
+This project is licensed under the [GNU GENERAL PUBLIC LICENSE](LICENSE). Feel free to contribute, modify, and distribute it!
