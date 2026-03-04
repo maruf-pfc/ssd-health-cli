@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img alt="License: GNU GENERAL PUBLIC LICENSE" src="https://img.shields.io/badge/License-GNU%20GENERAL%20PUBLIC%20LICENSE-blue.svg" />
+  <img alt="License: Apache License" src="https://img.shields.io/badge/License-Apache%20License-blue.svg" />
   <img alt="Platform" src="https://img.shields.io/badge/platform-Linux-lightgrey.svg" />
   <img alt="Bash" src="https://img.shields.io/badge/language-Bash-4EAA25.svg" />
 </p>
@@ -88,13 +88,6 @@ _Note: The tool requires root privileges to read SMART data directly from your h
 ```text
 Checking SSD Health...
 
-Disk: /dev/nvme0n1
-Model: Generic Ultra-Fast NVMe 1TB
-Status: PASSED
-Health: 100%
-Temperature: 48°C
-Power On Hours: 13703
-
 Disk: /dev/sdb
 Model: Samsung SSD 850 EVO 500GB
 Status: PASSED
@@ -105,4 +98,4 @@ Power On Hours: 5204
 
 ## 📄 License
 
-This project is licensed under the [GNU GENERAL PUBLIC LICENSE](LICENSE). Feel free to contribute, modify, and distribute it!
+This project is licensed under the [Apache License](LICENSE). Feel free to contribute, modify, and distribute it!
