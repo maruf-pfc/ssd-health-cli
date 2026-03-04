@@ -53,6 +53,13 @@ sudo pacman -S smartmontools
 
 ## 🛠️ Installation
 
+### Option 1: One-Line Installer (Recommended)
+You can install `ssd-health-cli` directly by running the following command in your terminal:
+```bash
+curl -sSfL https://raw.githubusercontent.com/blackstart-labs/ssd-health-cli/main/install.sh | sudo bash
+```
+
+### Option 2: Manual Installation (Git Clone)
 Clone the repository and run the installer script.
 
 ```bash

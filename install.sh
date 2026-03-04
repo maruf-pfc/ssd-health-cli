@@ -18,16 +18,25 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-if [ ! -f "ssd-health.sh" ]; then
-    echo -e "${RED}Error: ssd-health.sh not found in the current directory.${NC}"
-    exit 1
-fi
-
 # Install to /usr/local/bin
 TARGET="/usr/local/bin/ssd-health"
 
-echo "Copying ssd-health.sh to $TARGET..."
-cp ssd-health.sh "$TARGET"
+if [ -f "ssd-health.sh" ]; then
+    echo "Copying ssd-health.sh to $TARGET..."
+    cp ssd-health.sh "$TARGET"
+else
+    echo "Downloading ssd-health-cli from GitHub..."
+    REPO_URL="https://raw.githubusercontent.com/blackstart-labs/ssd-health-cli/main/ssd-health.sh"
+    
+    if command -v curl >/dev/null 2>&1; then
+        curl -sSfL "$REPO_URL" -o "$TARGET"
+    elif command -v wget >/dev/null 2>&1; then
+        wget -qO "$TARGET" "$REPO_URL"
+    else
+        echo -e "${RED}Error: Neither curl nor wget is installed. Cannot download.${NC}"
+        exit 1
+    fi
+fi
 chmod +x "$TARGET"
 
 echo -e "${GREEN}Installation successful!${NC}"
