@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Installer for ssd-health-cli
+# Installer for disk-health-cli
 # Copies the script to /usr/local/bin so it can be run globally
 
 set -e
@@ -10,7 +10,7 @@ RED='\033[0;31m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
-echo -e "${CYAN}Installing ssd-health-cli...${NC}"
+echo -e "${CYAN}Installing disk-health-cli...${NC}"
 
 # Check for root
 if [ "$EUID" -ne 0 ]; then
@@ -19,14 +19,14 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 # Install to /usr/local/bin
-TARGET="/usr/local/bin/ssd-health"
+TARGET="/usr/local/bin/disk-health"
 
-if [ -f "ssd-health.sh" ]; then
-    echo "Copying ssd-health.sh to $TARGET..."
-    cp ssd-health.sh "$TARGET"
+if [ -f "disk-health.sh" ]; then
+    echo "Copying disk-health.sh to $TARGET..."
+    cp disk-health.sh "$TARGET"
 else
-    echo "Downloading ssd-health-cli from GitHub..."
-    REPO_URL="https://raw.githubusercontent.com/blackstart-labs/ssd-health-cli/main/ssd-health.sh"
+    echo "Downloading disk-health-cli from GitHub..."
+    REPO_URL="https://raw.githubusercontent.com/blackstart-labs/disk-health-cli/main/disk-health.sh"
     
     if command -v curl >/dev/null 2>&1; then
         curl -sSfL "$REPO_URL" -o "$TARGET"
@@ -40,4 +40,4 @@ fi
 chmod +x "$TARGET"
 
 echo -e "${GREEN}Installation successful!${NC}"
-echo -e "You can now run '${CYAN}ssd-health${NC}' from anywhere."
+echo -e "You can now run '${CYAN}disk-health${NC}' from anywhere."
