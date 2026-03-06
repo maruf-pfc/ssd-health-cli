@@ -1,7 +1,7 @@
-<h1 align="center">SSD Health CLI</h1>
+<h1 align="center">Disk Health CLI</h1>
 
 <p align="center">
-  <strong>A simple, professional Linux command-line tool to check your SSD's health.</strong>
+  <strong>A powerful Linux command-line tool to check the health of all your storage devices.</strong>
 </p>
 
 <p align="center">
@@ -14,60 +14,48 @@
 
 ## 📌 Description
 
-`ssd-health-cli` is a minimal, beautifully formatted CLI tool designed specifically for Linux. It quickly scans all Solid State Drives (NVMe and SATA) on your system and presents their critical S.M.A.R.T. health attributes, including:
-- **Device Model**
-- **Overall Health Status**
-- **Health Percentage Remaining**
-- **Operating Temperature**
-- **Power On Hours**
+`disk-health-cli` is a clean, minimal CLI tool designed specifically for Linux that detects and analyzes storage devices to present their health information in a readable format.
 
-By leveraging `smartctl` under the hood, it eliminates the need to parse through long wall-of-text reports, giving you exactly the details you need at a glance.
+Instead of parsing through raw S.M.A.R.T. output walls of text, it neatly summarized:
+- **Device Information** (Path, Model, Serial Number, Firmware, Capacity)
+- **Health Information** (SMART Status, Percentage Health, Operating Temperature)
+- **Power On Time** (Cleanly formatted into Days, Hours, Minutes)
+- **Specialized Metrics** (Such as Total Data Written for SSDs/NVMe, or Reallocated Sectors for HDDs)
+
+Whether you are using an **HDD**, **SATA SSD**, **NVMe Drive**, or hardware **RAID array** with SMART data available, `disk-health-cli` will accurately present the critical metrics.
 
 ## 🚀 Features
 
-- **Automated Detection**: Auto-detects all solid state non-rotating drives attached to the system.
-- **Support for Both NVMe & SATA**: Intelligently handles different SMART attribute layouts.
-- **Clean Output**: Displays results plainly with helpful terminal colors.
-- **Quick Installation**: Globally installable with an included script.
+- **Broad Hardware Support**: Intelligently handles NVMe, SATA SSDs, and Traditional HDDs.
+- **Automated Detection**: Auto-detects all physical disks attached to the system (excluding loopbacks or virtual ramdrives).
+- **Auto-Installation of Dependencies**: Seamlessly installs `smartmontools` and `nvme-cli` if they are missing using `apt`, `dnf`, or `pacman`.
+- **Clean Output**: Displays results plainly with helpful terminal colors in a structured block format.
 
-## 📋 Prerequisites
+## 📋 Dependencies
 
-This tool relies on `smartmontools` and standard Linux utilities (`awk`, `lsblk`).
-If `smartctl` is not installed, install it via your distribution's package manager:
-
-**Ubuntu / Debian:**
-```bash
-sudo apt update
-sudo apt install smartmontools
-```
-
-**Fedora / RHEL:**
-```bash
-sudo dnf install smartmontools
-```
-
-**Arch Linux:**
-```bash
-sudo pacman -S smartmontools
-```
+The script will attempt to install these automatically via your system package manager if they are missing.
+- `smartmontools`
+- `nvme-cli`
+- `gawk`
+- `util-linux` (`lsblk`)
 
 ## 🛠️ Installation
 
 ### Option 1: One-Line Installer (Recommended)
-You can install `ssd-health-cli` directly by running the following command in your terminal:
+You can install `disk-health-cli` directly by running the following command in your terminal:
 ```bash
-curl -sSfL https://raw.githubusercontent.com/blackstart-labs/ssd-health-cli/main/install.sh | sudo bash
+curl -sSfL https://raw.githubusercontent.com/blackstart-labs/disk-health-cli/main/install.sh | sudo bash
 ```
 
 ### Option 2: Manual Installation (Git Clone)
 Clone the repository and run the installer script.
 
 ```bash
-git clone https://github.com/blackstart-labs/ssd-health-cli.git
-cd ssd-health-cli
+git clone https://github.com/blackstart-labs/disk-health-cli.git
+cd disk-health-cli
 
 # Make scripts executable
-chmod +x ssd-health.sh install.sh
+chmod +x disk-health.sh install.sh
 
 # Run the installer script with root privileges
 sudo ./install.sh
@@ -78,7 +66,7 @@ sudo ./install.sh
 After installation, the tool is available globally! Run the command:
 
 ```bash
-sudo ssd-health
+sudo disk-health
 ```
 
 _Note: The tool requires root privileges to read SMART data directly from your hardware._
@@ -86,14 +74,33 @@ _Note: The tool requires root privileges to read SMART data directly from your h
 ### Example Output
 
 ```text
-Checking SSD Health...
+Checking Disk Health...
 
-Disk: /dev/sdb
+------------------------------------
+Disk: /dev/sda
 Model: Samsung SSD 850 EVO 500GB
+Serial Number: DUMMYSERIAL12345
+Firmware: EMT02B6Q
+Type: SATA SSD
+Capacity: 500G
 Status: PASSED
 Health: 98%
 Temperature: 33°C
-Power On Hours: 5204
+Power On Time: 217 days 4 hours 0 minutes
+Data Written: 8.20 TB
+------------------------------------
+Disk: /dev/nvme0n1
+Model: Generic Ultra-Fast NVMe 1TB
+Serial Number: DUMMYNVME12345
+Firmware: 1024XB1
+Type: NVMe SSD
+Capacity: 1T
+Status: PASSED
+Health: 100%
+Temperature: 48°C
+Power On Time: 45 days 10 hours 0 minutes
+Data Written: 4.10 TB
+------------------------------------
 ```
 
 ## 📄 License
