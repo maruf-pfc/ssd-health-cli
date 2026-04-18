@@ -21,41 +21,47 @@ show_help() {
     echo "Usage: disk-health [OPTIONS]"
     echo ""
     echo "Options:"
-    echo "  -h, --help    Show this help message and exit"
-    echo "  -u, --update  Update the script to the latest version from GitHub"
+    echo "  -h, --help      Show this help message and exit"
+    echo "  -u, --update    Check and update to the latest version interactively"
+    echo "  -d, --uninstall Completely remove the script from your system"
     exit 0
+}
+
+get_sudo() {
+    local TARGET_PATH="$1"
+    local SCMD=""
+    if [ ! -w "$TARGET_PATH" ] && [ "$EUID" -ne 0 ]; then
+        if command -v sudo &> /dev/null; then
+            SCMD="sudo"
+            echo -e "${YELLOW}Requesting sudo privileges for $TARGET_PATH...${NC}"
+        else
+            echo -e "${RED}Error: Cannot manipulate $TARGET_PATH and 'sudo' is not available.${NC}"
+            exit 1
+        fi
+    fi
+    echo "$SCMD"
 }
 
 perform_update() {
     echo -e "${CYAN}Checking for updates...${NC}"
-    # Identify script path regardless of aliases or symlinks
     local SCRIPT_PATH
     SCRIPT_PATH=$(realpath "$0" 2>/dev/null || readlink -f "$0" 2>/dev/null || echo "$0")
     
-    # Check if we need sudo
-    local USE_SUDO=""
-    if [ ! -w "$SCRIPT_PATH" ] && [ "$EUID" -ne 0 ]; then
-        if command -v sudo &> /dev/null; then
-            USE_SUDO="sudo"
-            echo -e "${YELLOW}Requesting sudo privileges to update $SCRIPT_PATH...${NC}"
-        else
-            echo -e "${RED}Error: Cannot write to $SCRIPT_PATH and 'sudo' is not available.${NC}"
-            exit 1
-        fi
-    fi
+    local USE_SUDO
+    USE_SUDO=$(get_sudo "$SCRIPT_PATH")
 
     local TMP_FILE
     TMP_FILE=$(mktemp)
     
     if command -v curl >/dev/null 2>&1; then
         if ! curl -sSfL "$REPO_URL" -o "$TMP_FILE"; then
-            echo -e "${RED}Error: Failed to download update using curl.${NC}"
+            echo -e "${RED}Error: Failed to download update. Are you connected to the internet?${NC}"
             rm -f "$TMP_FILE"
             exit 1
         fi
     elif command -v wget >/dev/null 2>&1; then
         if ! wget -qO "$TMP_FILE" "$REPO_URL"; then
-            echo -e "${RED}Error: Failed to download update using wget.${NC}"
+            echo -e "${RED}Error: Failed to download update. Are you connected to the internet?${NC}"
             rm -f "$TMP_FILE"
             exit 1
         fi
@@ -65,18 +71,54 @@ perform_update() {
         exit 1
     fi
 
-    # Verify that what we downloaded looks like a bash script to prevent accidental corruption
     if ! grep -q "^#!/usr/bin/env bash" "$TMP_FILE"; then
-         echo -e "${RED}Error: Downloaded file does not appear to be a valid bash script. Update aborted.${NC}"
+         echo -e "${RED}Error: Downloaded file corrupted. Update aborted.${NC}"
          rm -f "$TMP_FILE"
          exit 1
     fi
 
-    $USE_SUDO cp "$TMP_FILE" "$SCRIPT_PATH"
-    $USE_SUDO chmod +x "$SCRIPT_PATH"
-    rm -f "$TMP_FILE"
+    if cmp -s "$TMP_FILE" "$SCRIPT_PATH"; then
+        echo -e "${GREEN}✔ disk-health-cli is already up to date.${NC}"
+        rm -f "$TMP_FILE"
+        exit 0
+    fi
+
+    echo -e "\n${YELLOW}🚀 A new version of disk-health-cli is available!${NC}"
+    local response="N"
     
-    echo -e "${GREEN}Update successfully applied to $SCRIPT_PATH!${NC}"
+    # Prompt the user
+    read -r -p "Do you want to update now? (y/N): " response || true
+
+    if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+        $USE_SUDO cp "$TMP_FILE" "$SCRIPT_PATH"
+        $USE_SUDO chmod +x "$SCRIPT_PATH"
+        echo -e "${GREEN}✔ disk-health-cli updated successfully.${NC}"
+    else
+        echo "Update skipped."
+    fi
+    
+    rm -f "$TMP_FILE"
+    exit 0
+}
+
+perform_uninstall() {
+    local SCRIPT_PATH
+    SCRIPT_PATH=$(realpath "$0" 2>/dev/null || readlink -f "$0" 2>/dev/null || echo "$0")
+    
+    echo -e "${RED}Warning: This will permanently delete ${SCRIPT_PATH}${NC}"
+    local response="N"
+    
+    # Prompt the user
+    read -r -p "Are you sure you want to completely remove disk-health-cli? (y/N): " response || true
+
+    if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+        local USE_SUDO
+        USE_SUDO=$(get_sudo "$SCRIPT_PATH")
+        $USE_SUDO rm -f "$SCRIPT_PATH"
+        echo -e "${GREEN}✔ disk-health-cli has been completely uninstalled.${NC}"
+    else
+        echo "Uninstall aborted."
+    fi
     exit 0
 }
 
@@ -87,6 +129,9 @@ for arg in "$@"; do
             ;;
         -u|--update)
             perform_update
+            ;;
+        -d|--uninstall|--delete)
+            perform_uninstall
             ;;
     esac
 done
