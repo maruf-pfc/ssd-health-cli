@@ -16,7 +16,7 @@
 
 `disk-health-cli` is a clean, minimal CLI tool designed specifically for Linux that detects and analyzes storage devices to present their health information in a readable format.
 
-Instead of parsing through raw S.M.A.R.T. output walls of text, it neatly summarized:
+Instead of parsing through raw S.M.A.R.T. output walls of text, it neatly summarizes:
 - **Device Information** (Path, Model, Serial Number, Firmware, Capacity)
 - **Health Information** (SMART Status, Percentage Health, Operating Temperature)
 - **Power On Time** (Cleanly formatted into Days, Hours, Minutes)
@@ -29,6 +29,7 @@ Whether you are using an **HDD**, **SATA SSD**, **NVMe Drive**, or hardware **RA
 - **Broad Hardware Support**: Intelligently handles NVMe, SATA SSDs, and Traditional HDDs.
 - **Automated Detection**: Auto-detects all physical disks attached to the system (excluding loopbacks or virtual ramdrives).
 - **Auto-Installation of Dependencies**: Seamlessly installs `smartmontools` and `nvme-cli` if they are missing using `apt`, `dnf`, or `pacman`.
+- **Self-Updating**: Keep your script instantly up to date with the newest features using the `--update` flag.
 - **Clean Output**: Displays results plainly with helpful terminal colors in a structured block format.
 
 ## 📋 Dependencies
@@ -71,6 +72,17 @@ sudo disk-health
 
 _Note: The tool requires root privileges to read SMART data directly from your hardware._
 
+### Checking for Updates
+You do not need to repeat the install block to get new improvements. Simply run:
+```bash
+sudo disk-health --update
+```
+
+### Display Help
+```bash
+disk-health --help
+```
+
 ### Example Output
 
 ```text
@@ -102,6 +114,9 @@ Power On Time: 45 days 10 hours 0 minutes
 Data Written: 4.10 TB
 ------------------------------------
 ```
+
+## 📚 Documentation
+For complete technical details, fallback logic explanations, and in-depth mechanic transparency, explore the full documentation using [our developer manual](docs/src/MANUAL.md).
 
 ## 📄 License
 
