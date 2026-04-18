@@ -147,8 +147,20 @@ for disk_info in $disks; do
             [ -n "$pct_used" ] && health_percent=$((100 - pct_used))
         fi
 
-        temp=$(echo "$nvme_smart" | awk -F ': ' '/temperature/ {print $2}' | awk '{print $1}')
-        [ -z "$temp" ] && temp=$(echo "$attrs" | awk -F ': +' '/Temperature:/ {print $2}' | awk '{print $1}')
+        # Match only the exact 'temperature' field — NOT 'temperature_sensor_1', 'temperature_sensor_2', etc.
+        temp_raw=$(echo "$nvme_smart" | awk -F ': ' '/^temperature[[:space:]]/ {print $2; exit}' | awk '{print $1}')
+        # The NVMe spec stores temperature in Kelvin; some nvme-cli versions output the raw Kelvin
+        # value without converting to Celsius. Threshold of 200 is safe: no real NVMe operates at 200°C,
+        # but any Kelvin value for a plausible operating temperature will always be > 200 (273 K = 0°C).
+        if [[ "$temp_raw" =~ ^[0-9]+$ ]]; then
+            if [ "$temp_raw" -gt 200 ]; then
+                temp=$((temp_raw - 273))
+            else
+                temp="$temp_raw"
+            fi
+        fi
+        # Fallback: smartctl -A; use 'exit' to stop after the first match and avoid multiline capture
+        [ -z "$temp" ] && temp=$(echo "$attrs" | awk -F ': +' '/Temperature:/ {print $2; exit}' | awk '{print $1}')
         
         poh_raw=$(echo "$nvme_smart" | awk -F ': ' '/power_on_hours/ {print $2}' | tr -d ',')
         [ -z "$poh_raw" ] && poh_raw=$(echo "$attrs" | awk -F ': +' '/Power On Hours:/ {print $2}' | awk '{print $1}' | tr -d ',')
