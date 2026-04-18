@@ -12,6 +12,85 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
+# Argument Parsing & Self-Update
+REPO_URL="https://raw.githubusercontent.com/blackstart-labs/disk-health-cli/main/disk-health.sh"
+
+show_help() {
+    echo -e "${CYAN}disk-health-cli${NC} - A clean CLI tool to check disk health on Linux."
+    echo ""
+    echo "Usage: disk-health [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  -h, --help    Show this help message and exit"
+    echo "  -u, --update  Update the script to the latest version from GitHub"
+    exit 0
+}
+
+perform_update() {
+    echo -e "${CYAN}Checking for updates...${NC}"
+    # Identify script path regardless of aliases or symlinks
+    local SCRIPT_PATH
+    SCRIPT_PATH=$(realpath "$0" 2>/dev/null || readlink -f "$0" 2>/dev/null || echo "$0")
+    
+    # Check if we need sudo
+    local USE_SUDO=""
+    if [ ! -w "$SCRIPT_PATH" ] && [ "$EUID" -ne 0 ]; then
+        if command -v sudo &> /dev/null; then
+            USE_SUDO="sudo"
+            echo -e "${YELLOW}Requesting sudo privileges to update $SCRIPT_PATH...${NC}"
+        else
+            echo -e "${RED}Error: Cannot write to $SCRIPT_PATH and 'sudo' is not available.${NC}"
+            exit 1
+        fi
+    fi
+
+    local TMP_FILE
+    TMP_FILE=$(mktemp)
+    
+    if command -v curl >/dev/null 2>&1; then
+        if ! curl -sSfL "$REPO_URL" -o "$TMP_FILE"; then
+            echo -e "${RED}Error: Failed to download update using curl.${NC}"
+            rm -f "$TMP_FILE"
+            exit 1
+        fi
+    elif command -v wget >/dev/null 2>&1; then
+        if ! wget -qO "$TMP_FILE" "$REPO_URL"; then
+            echo -e "${RED}Error: Failed to download update using wget.${NC}"
+            rm -f "$TMP_FILE"
+            exit 1
+        fi
+    else
+        echo -e "${RED}Error: Neither curl nor wget is installed. Cannot download update.${NC}"
+        rm -f "$TMP_FILE"
+        exit 1
+    fi
+
+    # Verify that what we downloaded looks like a bash script to prevent accidental corruption
+    if ! grep -q "^#!/usr/bin/env bash" "$TMP_FILE"; then
+         echo -e "${RED}Error: Downloaded file does not appear to be a valid bash script. Update aborted.${NC}"
+         rm -f "$TMP_FILE"
+         exit 1
+    fi
+
+    $USE_SUDO cp "$TMP_FILE" "$SCRIPT_PATH"
+    $USE_SUDO chmod +x "$SCRIPT_PATH"
+    rm -f "$TMP_FILE"
+    
+    echo -e "${GREEN}Update successfully applied to $SCRIPT_PATH!${NC}"
+    exit 0
+}
+
+for arg in "$@"; do
+    case $arg in
+        -h|--help)
+            show_help
+            ;;
+        -u|--update)
+            perform_update
+            ;;
+    esac
+done
+
 echo -e "${CYAN}Checking Disk Health...${NC}\n"
 
 # Verify/Install dependencies
